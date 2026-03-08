@@ -158,6 +158,17 @@ const FieldPage = () => {
 
             {/* Analytics */}
             <AnalyticsPanel />
+
+            {/* Treatment Recommendations */}
+            <TreatmentRecommendations
+              species={[
+                { name: "Amaranthus retroflexus", count: 203, percentage: 35 },
+                { name: "Cyperus rotundus", count: 145, percentage: 25 },
+                { name: "Echinochloa crus-galli", count: 116, percentage: 20 },
+                { name: "Digitaria sanguinalis", count: 70, percentage: 12 },
+                { name: "Setaria viridis", count: 47, percentage: 8 },
+              ]}
+            />
           </motion.div>
         )}
       </div>
