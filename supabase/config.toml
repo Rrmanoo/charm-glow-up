@@ -1,1 +1,4 @@
 project_id = "mrqzecrejzxjjhuxiyqr"
+
+[functions.classify-weed]
+verify_jwt = false
