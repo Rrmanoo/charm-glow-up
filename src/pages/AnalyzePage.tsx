@@ -110,12 +110,19 @@ const BoundingBoxOverlay = ({ boxes, showBoxes }: { boxes: BoundingBox[]; showBo
 };
 
 const AnalyzePage = () => {
+  const [searchParams] = useSearchParams();
   const [image, setImage] = useState<string | null>(null);
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [analyzing, setAnalyzing] = useState(false);
   const [result, setResult] = useState<AnalysisResult | null>(null);
   const [isExample, setIsExample] = useState(false);
   const [showBoxes, setShowBoxes] = useState(true);
+
+  useEffect(() => {
+    if (searchParams.get("example") === "true" && !result) {
+      showExample();
+    }
+  }, []);
 
   const showExample = () => {
     setImage(weedSampleImg);

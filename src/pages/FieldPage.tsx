@@ -13,10 +13,17 @@ import StatCard from "@/components/StatCard";
 import { Hash, Percent, Bug, Leaf } from "lucide-react";
 
 const FieldPage = () => {
+  const [searchParams] = useSearchParams();
   const [location, setLocation] = useState("");
   const [showResults, setShowResults] = useState(false);
   const [processing, setProcessing] = useState(false);
   const [isExample, setIsExample] = useState(false);
+
+  useEffect(() => {
+    if (searchParams.get("example") === "true" && !showResults && !isExample) {
+      showExample();
+    }
+  }, []);
 
   const handleProcess = async () => {
     setProcessing(true);
