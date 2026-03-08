@@ -9,16 +9,19 @@ const features = [
     icon: Target,
     title: "Single Image Analysis",
     desc: "Upload a photo and instantly get weed count, species classification, and infestation rate.",
+    link: "/analyze",
   },
   {
     icon: Grid3X3,
     title: "Full Field Reconstruction",
     desc: "Divide your 100ha field into 9 zones, upload 50 images each, and get a complete weed map.",
+    link: "/field",
   },
   {
     icon: BarChart3,
     title: "Analytics Dashboard",
     desc: "Detailed charts showing infestation rates, weed species distribution, and zone comparisons.",
+    link: "/field",
   },
 ];
 
