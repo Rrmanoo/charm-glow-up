@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import FieldGrid from "@/components/FieldGrid";
 import FieldOverlay from "@/components/FieldOverlay";
 import AnalyticsPanel from "@/components/AnalyticsPanel";
+import ZoneDetailGrid from "@/components/ZoneDetailGrid";
 import StatCard from "@/components/StatCard";
 import { Hash, Percent, Bug, Leaf } from "lucide-react";
 
@@ -133,6 +134,9 @@ const FieldPage = () => {
 
             {/* Field overlay */}
             <FieldOverlay />
+
+            {/* Zone detail blocks */}
+            <ZoneDetailGrid />
 
             {/* Analytics */}
             <AnalyticsPanel />
