@@ -1,48 +1,54 @@
 import { useState, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Upload, Loader2, Bug, Percent, Hash, Leaf } from "lucide-react";
+import { Upload, Loader2, Bug, Percent, Hash, Leaf, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import StatCard from "@/components/StatCard";
 import weedSampleImg from "@/assets/weed-sample.jpg";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 interface AnalysisResult {
   weedCount: number;
   infestationRate: number;
   species: { name: string; count: number; percentage: number }[];
+  summary?: string;
 }
 
-const mockAnalyze = (): Promise<AnalysisResult> =>
-  new Promise((resolve) =>
-    setTimeout(
-      () =>
-        resolve({
-          weedCount: 47,
-          infestationRate: 23.5,
-          species: [
-            { name: "Amaranthus retroflexus", count: 18, percentage: 38 },
-            { name: "Cyperus rotundus", count: 12, percentage: 26 },
-            { name: "Echinochloa crus-galli", count: 9, percentage: 19 },
-            { name: "Digitaria sanguinalis", count: 5, percentage: 11 },
-            { name: "Other species", count: 3, percentage: 6 },
-          ],
-        }),
-      2000
-    )
-  );
+const mockResult: AnalysisResult = {
+  weedCount: 47,
+  infestationRate: 23.5,
+  species: [
+    { name: "Amaranthus retroflexus", count: 18, percentage: 38 },
+    { name: "Cyperus rotundus", count: 12, percentage: 26 },
+    { name: "Echinochloa crus-galli", count: 9, percentage: 19 },
+    { name: "Digitaria sanguinalis", count: 5, percentage: 11 },
+    { name: "Other species", count: 3, percentage: 6 },
+  ],
+  summary: "Example output — upload your own image for real AI analysis.",
+};
+
+const fileToBase64 = (file: File): Promise<string> =>
+  new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      const result = reader.result as string;
+      resolve(result.split(",")[1]); // strip data:...;base64,
+    };
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
 
 const AnalyzePage = () => {
   const [image, setImage] = useState<string | null>(null);
+  const [imageFile, setImageFile] = useState<File | null>(null);
   const [analyzing, setAnalyzing] = useState(false);
   const [result, setResult] = useState<AnalysisResult | null>(null);
   const [isExample, setIsExample] = useState(false);
 
-  const showExample = async () => {
+  const showExample = () => {
     setImage(weedSampleImg);
     setIsExample(true);
-    setAnalyzing(true);
-    const res = await mockAnalyze();
-    setResult(res);
-    setAnalyzing(false);
+    setResult(mockResult);
   };
 
   const handleUpload = useCallback(
@@ -54,16 +60,33 @@ const AnalyzePage = () => {
           : e.target.files?.[0];
       if (!file || !file.type.startsWith("image/")) return;
       setImage(URL.createObjectURL(file));
+      setImageFile(file);
       setResult(null);
+      setIsExample(false);
     },
     []
   );
 
   const runAnalysis = async () => {
+    if (!imageFile) return;
     setAnalyzing(true);
-    const res = await mockAnalyze();
-    setResult(res);
-    setAnalyzing(false);
+    try {
+      const imageBase64 = await fileToBase64(imageFile);
+      const { data, error } = await supabase.functions.invoke("classify-weed", {
+        body: { imageBase64 },
+      });
+
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+
+      setResult(data as AnalysisResult);
+      toast.success("Analysis complete!");
+    } catch (err: any) {
+      console.error("Analysis failed:", err);
+      toast.error(err.message || "Analysis failed. Please try again.");
+    } finally {
+      setAnalyzing(false);
+    }
   };
 
   return (
@@ -74,7 +97,7 @@ const AnalyzePage = () => {
             Single Image Analysis
           </h1>
           <p className="mt-2 text-muted-foreground">
-            Upload a field image to identify and count weeds with infestation rate
+            Upload a field image to identify and count weeds with AI-powered classification
           </p>
           {!image && !result && (
             <Button
@@ -126,27 +149,30 @@ const AnalyzePage = () => {
                   />
                 </div>
                 <div className="flex gap-3">
-                  <Button
-                    onClick={runAnalysis}
-                    disabled={analyzing}
-                    className="flex-1 bg-gradient-hero text-primary-foreground font-semibold"
-                  >
-                    {analyzing ? (
-                      <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Analyzing...
-                      </>
-                    ) : (
-                      <>
-                        <Bug className="mr-2 h-4 w-4" />
-                        Detect Weeds
-                      </>
-                    )}
-                  </Button>
+                  {!isExample && (
+                    <Button
+                      onClick={runAnalysis}
+                      disabled={analyzing}
+                      className="flex-1 bg-gradient-hero text-primary-foreground font-semibold"
+                    >
+                      {analyzing ? (
+                        <>
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          Analyzing with AI...
+                        </>
+                      ) : (
+                        <>
+                          <Bug className="mr-2 h-4 w-4" />
+                          Detect Weeds
+                        </>
+                      )}
+                    </Button>
+                  )}
                   <Button
                     variant="outline"
                     onClick={() => {
                       setImage(null);
+                      setImageFile(null);
                       setResult(null);
                       setIsExample(false);
                     }}
@@ -169,6 +195,12 @@ const AnalyzePage = () => {
                   exit={{ opacity: 0 }}
                   className="space-y-4"
                 >
+                  {isExample && (
+                    <div className="flex items-center gap-2 rounded-lg border border-accent/30 bg-accent/10 px-3 py-2 text-xs text-accent-foreground">
+                      <AlertCircle className="h-3.5 w-3.5" />
+                      This is example data. Upload your own image for real AI analysis.
+                    </div>
+                  )}
                   <div className="grid grid-cols-2 gap-3">
                     <StatCard
                       icon={Hash}
@@ -191,6 +223,12 @@ const AnalyzePage = () => {
                       }
                     />
                   </div>
+
+                  {result.summary && !isExample && (
+                    <div className="rounded-xl border bg-card p-4 shadow-card">
+                      <p className="text-sm text-muted-foreground">{result.summary}</p>
+                    </div>
+                  )}
 
                   <div className="rounded-xl border bg-card p-5 shadow-card">
                     <h3 className="mb-3 text-sm font-semibold text-foreground">
@@ -236,7 +274,7 @@ const AnalyzePage = () => {
                     className="mb-4 h-28 w-28 rounded-xl object-cover opacity-60"
                   />
                   <p className="text-sm text-muted-foreground">
-                    Upload an image and click "Detect Weeds" to see analysis results
+                    Upload an image and click "Detect Weeds" to see AI-powered analysis results
                   </p>
                 </motion.div>
               )}
