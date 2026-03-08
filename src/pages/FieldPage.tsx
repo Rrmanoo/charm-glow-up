@@ -5,7 +5,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import FieldGrid from "@/components/FieldGrid";
 import FieldOverlay from "@/components/FieldOverlay";
+import FieldImageReconstruction from "@/components/FieldImageReconstruction";
 import AnalyticsPanel from "@/components/AnalyticsPanel";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import StatCard from "@/components/StatCard";
 import { Hash, Percent, Bug, Leaf } from "lucide-react";
 
@@ -131,9 +133,19 @@ const FieldPage = () => {
               <StatCard icon={Leaf} label="Most Affected" value="Zone 7" sub="42% infestation" variant="destructive" />
             </div>
 
-            {/* Field overlay */}
-            <FieldOverlay />
-
+            {/* Field reconstruction tabs */}
+            <Tabs defaultValue="images" className="w-full">
+              <TabsList className="mb-4">
+                <TabsTrigger value="images">📸 Image Mosaic</TabsTrigger>
+                <TabsTrigger value="satellite">🛰️ Satellite Overlay</TabsTrigger>
+              </TabsList>
+              <TabsContent value="images">
+                <FieldImageReconstruction />
+              </TabsContent>
+              <TabsContent value="satellite">
+                <FieldOverlay />
+              </TabsContent>
+            </Tabs>
 
             {/* Analytics */}
             <AnalyticsPanel />
