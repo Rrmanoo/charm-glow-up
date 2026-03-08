@@ -34,6 +34,16 @@ const AnalyzePage = () => {
   const [image, setImage] = useState<string | null>(null);
   const [analyzing, setAnalyzing] = useState(false);
   const [result, setResult] = useState<AnalysisResult | null>(null);
+  const [isExample, setIsExample] = useState(false);
+
+  const showExample = async () => {
+    setImage(weedSampleImg);
+    setIsExample(true);
+    setAnalyzing(true);
+    const res = await mockAnalyze();
+    setResult(res);
+    setAnalyzing(false);
+  };
 
   const handleUpload = useCallback(
     (e: React.ChangeEvent<HTMLInputElement> | React.DragEvent) => {
@@ -66,6 +76,17 @@ const AnalyzePage = () => {
           <p className="mt-2 text-muted-foreground">
             Upload a field image to identify and count weeds with infestation rate
           </p>
+          {!image && !result && (
+            <Button
+              variant="outline"
+              size="sm"
+              className="mt-3"
+              onClick={showExample}
+            >
+              <Leaf className="mr-2 h-4 w-4" />
+              See Example Output
+            </Button>
+          )}
         </motion.div>
 
         <div className="mt-8 grid gap-8 lg:grid-cols-2">
@@ -127,6 +148,7 @@ const AnalyzePage = () => {
                     onClick={() => {
                       setImage(null);
                       setResult(null);
+                      setIsExample(false);
                     }}
                   >
                     Clear

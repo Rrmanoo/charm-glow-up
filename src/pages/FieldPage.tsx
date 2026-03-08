@@ -13,10 +13,20 @@ const FieldPage = () => {
   const [location, setLocation] = useState("");
   const [showResults, setShowResults] = useState(false);
   const [processing, setProcessing] = useState(false);
+  const [isExample, setIsExample] = useState(false);
 
   const handleProcess = async () => {
     setProcessing(true);
     await new Promise((r) => setTimeout(r, 2500));
+    setShowResults(true);
+    setProcessing(false);
+  };
+
+  const showExample = async () => {
+    setLocation("37.7749° N, 122.4194° W — Sacramento Valley");
+    setProcessing(true);
+    setIsExample(true);
+    await new Promise((r) => setTimeout(r, 1500));
     setShowResults(true);
     setProcessing(false);
   };
@@ -31,6 +41,27 @@ const FieldPage = () => {
           <p className="mt-2 text-muted-foreground">
             Upload images from all 9 zones of your 100-hectare field for complete weed mapping
           </p>
+          {!showResults && !isExample && (
+            <Button
+              variant="outline"
+              size="sm"
+              className="mt-3"
+              onClick={showExample}
+              disabled={processing}
+            >
+              {processing ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Loading Example...
+                </>
+              ) : (
+                <>
+                  <Leaf className="mr-2 h-4 w-4" />
+                  See Example Output
+                </>
+              )}
+            </Button>
+          )}
         </motion.div>
 
         {/* Location input */}
