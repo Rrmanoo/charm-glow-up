@@ -99,26 +99,27 @@ const Index = () => {
 
         <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {features.map((f, i) => (
-            <motion.div
-              key={f.title}
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: i * 0.15 }}
-              className="group rounded-2xl border bg-card p-6 shadow-card transition-shadow hover:shadow-elevated"
-            >
-              <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10">
-                <f.icon className="h-6 w-6 text-primary" />
-              </div>
-              <h3 className="text-lg font-semibold text-foreground">{f.title}</h3>
-              <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
-                {f.desc}
-              </p>
-              <div className="mt-4 flex items-center text-sm font-medium text-primary">
-                Learn more
-                <ArrowRight className="ml-1 h-4 w-4 transition-transform group-hover:translate-x-1" />
-              </div>
-            </motion.div>
+            <Link to={f.link} key={f.title} className="block">
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: i * 0.15 }}
+                className="group rounded-2xl border bg-card p-6 shadow-card transition-shadow hover:shadow-elevated cursor-pointer h-full"
+              >
+                <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10">
+                  <f.icon className="h-6 w-6 text-primary" />
+                </div>
+                <h3 className="text-lg font-semibold text-foreground">{f.title}</h3>
+                <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+                  {f.desc}
+                </p>
+                <div className="mt-4 flex items-center text-sm font-medium text-primary">
+                  Learn more
+                  <ArrowRight className="ml-1 h-4 w-4 transition-transform group-hover:translate-x-1" />
+                </div>
+              </motion.div>
+            </Link>
           ))}
         </div>
       </section>
