@@ -381,6 +381,8 @@ const AnalyzePage = () => {
                       ))}
                     </div>
                   </div>
+
+                  <TreatmentRecommendations species={result.species} />
                 </motion.div>
               ) : (
                 <motion.div
