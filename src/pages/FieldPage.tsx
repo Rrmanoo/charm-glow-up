@@ -134,7 +134,7 @@ const FieldPage = () => {
             </div>
 
             {/* Field reconstruction tabs */}
-            <Tabs defaultValue="images" className="w-full">
+            <Tabs defaultValue="satellite" className="w-full">
               <TabsList className="mb-4">
                 <TabsTrigger value="images">📸 Image Mosaic</TabsTrigger>
                 <TabsTrigger value="satellite">🛰️ Satellite Overlay</TabsTrigger>
