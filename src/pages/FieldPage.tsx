@@ -135,6 +135,9 @@ const FieldPage = () => {
             {/* Field overlay */}
             <FieldOverlay />
 
+            {/* Zone detail blocks */}
+            <ZoneDetailGrid />
+
             {/* Analytics */}
             <AnalyticsPanel />
           </motion.div>
