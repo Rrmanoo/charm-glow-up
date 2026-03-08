@@ -1,24 +1,53 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Upload, Loader2, Bug, Percent, Hash, Leaf, AlertCircle } from "lucide-react";
+import { Upload, Loader2, Bug, Percent, Hash, Leaf, AlertCircle, Eye, EyeOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import StatCard from "@/components/StatCard";
 import weedSampleImg from "@/assets/weed-sample.jpg";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
+interface BoundingBox {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  label: string;
+  confidence: number;
+}
+
 interface AnalysisResult {
   weedCount: number;
   infestationRate: number;
   species: { name: string; count: number; percentage: number }[];
+  boundingBoxes?: BoundingBox[];
   summary?: string;
 }
+
+const BBOX_COLORS = [
+  "rgba(239, 68, 68, 0.85)",   // red
+  "rgba(234, 179, 8, 0.85)",   // yellow
+  "rgba(59, 130, 246, 0.85)",  // blue
+  "rgba(168, 85, 247, 0.85)",  // purple
+  "rgba(34, 197, 94, 0.85)",   // green
+  "rgba(249, 115, 22, 0.85)",  // orange
+];
+
+const getSpeciesColor = (label: string, allLabels: string[]) => {
+  const uniqueLabels = [...new Set(allLabels)];
+  const idx = uniqueLabels.indexOf(label);
+  return BBOX_COLORS[idx % BBOX_COLORS.length];
+};
 
 const mockResult: AnalysisResult = {
   weedCount: 2,
   infestationRate: 8.5,
   species: [
     { name: "Portulaca oleracea", count: 2, percentage: 100 },
+  ],
+  boundingBoxes: [
+    { x: 0.25, y: 0.3, width: 0.22, height: 0.25, label: "Portulaca oleracea", confidence: 0.92 },
+    { x: 0.55, y: 0.5, width: 0.2, height: 0.22, label: "Portulaca oleracea", confidence: 0.87 },
   ],
   summary: "Two specimens of Common Purslane (Portulaca oleracea) detected on bare soil. The plant displays characteristic succulent, spatula-shaped leaves arranged in a rosette pattern. Low infestation rate with localized growth.",
 };
@@ -28,11 +57,56 @@ const fileToBase64 = (file: File): Promise<string> =>
     const reader = new FileReader();
     reader.onload = () => {
       const result = reader.result as string;
-      resolve(result.split(",")[1]); // strip data:...;base64,
+      resolve(result.split(",")[1]);
     };
     reader.onerror = reject;
     reader.readAsDataURL(file);
   });
+
+const BoundingBoxOverlay = ({ boxes, showBoxes }: { boxes: BoundingBox[]; showBoxes: boolean }) => {
+  if (!showBoxes || !boxes.length) return null;
+  const allLabels = boxes.map((b) => b.label);
+
+  return (
+    <div className="absolute inset-0 pointer-events-none">
+      {boxes.map((box, i) => {
+        const color = getSpeciesColor(box.label, allLabels);
+        return (
+          <motion.div
+            key={i}
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: i * 0.1 }}
+            className="absolute"
+            style={{
+              left: `${box.x * 100}%`,
+              top: `${box.y * 100}%`,
+              width: `${box.width * 100}%`,
+              height: `${box.height * 100}%`,
+            }}
+          >
+            {/* Box border */}
+            <div
+              className="absolute inset-0 rounded-sm"
+              style={{
+                border: `2px solid ${color}`,
+                boxShadow: `0 0 8px ${color.replace("0.85", "0.4")}`,
+              }}
+            />
+            {/* Label tag */}
+            <div
+              className="absolute -top-5 left-0 flex items-center gap-1 rounded-t-sm px-1.5 py-0.5 text-[9px] font-bold text-white whitespace-nowrap"
+              style={{ backgroundColor: color }}
+            >
+              <span className="truncate max-w-[100px]">{box.label}</span>
+              <span className="opacity-80">{Math.round(box.confidence * 100)}%</span>
+            </div>
+          </motion.div>
+        );
+      })}
+    </div>
+  );
+};
 
 const AnalyzePage = () => {
   const [image, setImage] = useState<string | null>(null);
@@ -40,11 +114,13 @@ const AnalyzePage = () => {
   const [analyzing, setAnalyzing] = useState(false);
   const [result, setResult] = useState<AnalysisResult | null>(null);
   const [isExample, setIsExample] = useState(false);
+  const [showBoxes, setShowBoxes] = useState(true);
 
   const showExample = () => {
     setImage(weedSampleImg);
     setIsExample(true);
     setResult(mockResult);
+    setShowBoxes(true);
   };
 
   const handleUpload = useCallback(
@@ -59,6 +135,7 @@ const AnalyzePage = () => {
       setImageFile(file);
       setResult(null);
       setIsExample(false);
+      setShowBoxes(true);
     },
     []
   );
@@ -76,6 +153,7 @@ const AnalyzePage = () => {
       if (data?.error) throw new Error(data.error);
 
       setResult(data as AnalysisResult);
+      setShowBoxes(true);
       toast.success("Analysis complete!");
     } catch (err: any) {
       console.error("Analysis failed:", err);
@@ -93,7 +171,7 @@ const AnalyzePage = () => {
             Single Image Analysis
           </h1>
           <p className="mt-2 text-muted-foreground">
-            Upload a field image to identify and count weeds with AI-powered classification
+            Upload a field image to identify and count weeds with AI-powered classification and bounding box detection
           </p>
           {!image && !result && (
             <Button
@@ -137,12 +215,15 @@ const AnalyzePage = () => {
               </label>
             ) : (
               <div className="space-y-4">
-                <div className="overflow-hidden rounded-2xl border shadow-card">
+                <div className="relative overflow-hidden rounded-2xl border shadow-card">
                   <img
                     src={image}
                     alt="Uploaded field"
                     className="w-full object-cover"
                   />
+                  {result?.boundingBoxes && (
+                    <BoundingBoxOverlay boxes={result.boundingBoxes} showBoxes={showBoxes} />
+                  )}
                 </div>
                 <div className="flex gap-3">
                   {!isExample && (
@@ -162,6 +243,16 @@ const AnalyzePage = () => {
                           Detect Weeds
                         </>
                       )}
+                    </Button>
+                  )}
+                  {result?.boundingBoxes && result.boundingBoxes.length > 0 && (
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      onClick={() => setShowBoxes(!showBoxes)}
+                      title={showBoxes ? "Hide bounding boxes" : "Show bounding boxes"}
+                    >
+                      {showBoxes ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                     </Button>
                   )}
                   <Button
@@ -220,7 +311,32 @@ const AnalyzePage = () => {
                     />
                   </div>
 
-                  {result.summary && !isExample && (
+                  {/* Bounding box legend */}
+                  {result.boundingBoxes && result.boundingBoxes.length > 0 && (
+                    <div className="rounded-xl border bg-card p-4 shadow-card">
+                      <h3 className="mb-2 text-sm font-semibold text-foreground">
+                        Detections ({result.boundingBoxes.length})
+                      </h3>
+                      <div className="flex flex-wrap gap-2">
+                        {result.boundingBoxes.map((box, i) => {
+                          const allLabels = result.boundingBoxes!.map((b) => b.label);
+                          const color = getSpeciesColor(box.label, allLabels);
+                          return (
+                            <div
+                              key={i}
+                              className="flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-medium text-white"
+                              style={{ backgroundColor: color }}
+                            >
+                              <span className="truncate max-w-[120px]">{box.label}</span>
+                              <span className="opacity-80">{Math.round(box.confidence * 100)}%</span>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
+
+                  {result.summary && (
                     <div className="rounded-xl border bg-card p-4 shadow-card">
                       <p className="text-sm text-muted-foreground">{result.summary}</p>
                     </div>
@@ -270,7 +386,7 @@ const AnalyzePage = () => {
                     className="mb-4 h-28 w-28 rounded-xl object-cover opacity-60"
                   />
                   <p className="text-sm text-muted-foreground">
-                    Upload an image and click "Detect Weeds" to see AI-powered analysis results
+                    Upload an image and click "Detect Weeds" to see AI-powered analysis with bounding boxes
                   </p>
                 </motion.div>
               )}
