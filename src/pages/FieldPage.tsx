@@ -133,9 +133,19 @@ const FieldPage = () => {
               <StatCard icon={Leaf} label="Most Affected" value="Zone 7" sub="42% infestation" variant="destructive" />
             </div>
 
-            {/* Field overlay */}
-            <FieldOverlay />
-
+            {/* Field reconstruction tabs */}
+            <Tabs defaultValue="images" className="w-full">
+              <TabsList className="mb-4">
+                <TabsTrigger value="images">📸 Image Mosaic</TabsTrigger>
+                <TabsTrigger value="satellite">🛰️ Satellite Overlay</TabsTrigger>
+              </TabsList>
+              <TabsContent value="images">
+                <FieldImageReconstruction />
+              </TabsContent>
+              <TabsContent value="satellite">
+                <FieldOverlay />
+              </TabsContent>
+            </Tabs>
 
             {/* Analytics */}
             <AnalyticsPanel />
