@@ -9,16 +9,19 @@ const features = [
     icon: Target,
     title: "Single Image Analysis",
     desc: "Upload a photo and instantly get weed count, species classification, and infestation rate.",
+    link: "/analyze",
   },
   {
     icon: Grid3X3,
     title: "Full Field Reconstruction",
     desc: "Divide your 100ha field into 9 zones, upload 50 images each, and get a complete weed map.",
+    link: "/field",
   },
   {
     icon: BarChart3,
     title: "Analytics Dashboard",
     desc: "Detailed charts showing infestation rates, weed species distribution, and zone comparisons.",
+    link: "/field",
   },
 ];
 
@@ -67,7 +70,7 @@ const Index = () => {
                   Analyze Image
                 </Link>
               </Button>
-              <Button asChild variant="outline" size="lg" className="border-primary-foreground/30 text-primary-foreground hover:bg-primary-foreground/10 hover:text-primary-foreground">
+              <Button asChild variant="outline" size="lg" className="border-primary-foreground/30 bg-primary-foreground/10 text-primary-foreground hover:bg-primary-foreground/20 hover:text-primary-foreground backdrop-blur-sm">
                 <Link to="/field">
                   <Grid3X3 className="mr-2 h-4 w-4" />
                   Field Analysis
@@ -96,26 +99,27 @@ const Index = () => {
 
         <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {features.map((f, i) => (
-            <motion.div
-              key={f.title}
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: i * 0.15 }}
-              className="group rounded-2xl border bg-card p-6 shadow-card transition-shadow hover:shadow-elevated"
-            >
-              <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10">
-                <f.icon className="h-6 w-6 text-primary" />
-              </div>
-              <h3 className="text-lg font-semibold text-foreground">{f.title}</h3>
-              <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
-                {f.desc}
-              </p>
-              <div className="mt-4 flex items-center text-sm font-medium text-primary">
-                Learn more
-                <ArrowRight className="ml-1 h-4 w-4 transition-transform group-hover:translate-x-1" />
-              </div>
-            </motion.div>
+            <Link to={f.link} key={f.title} className="block">
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: i * 0.15 }}
+                className="group rounded-2xl border bg-card p-6 shadow-card transition-shadow hover:shadow-elevated cursor-pointer h-full"
+              >
+                <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10">
+                  <f.icon className="h-6 w-6 text-primary" />
+                </div>
+                <h3 className="text-lg font-semibold text-foreground">{f.title}</h3>
+                <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+                  {f.desc}
+                </p>
+                <div className="mt-4 flex items-center text-sm font-medium text-primary">
+                  Learn more
+                  <ArrowRight className="ml-1 h-4 w-4 transition-transform group-hover:translate-x-1" />
+                </div>
+              </motion.div>
+            </Link>
           ))}
         </div>
       </section>
