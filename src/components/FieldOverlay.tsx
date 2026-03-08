@@ -99,13 +99,20 @@ const FieldOverlay = () => {
                 animate={{ opacity: 1 }}
                 transition={{ delay: 0.3 + i * 0.1 }}
                 onClick={() => setSelectedZone(selectedZone?.zone === z.zone ? null : z)}
-                className={`flex flex-col items-center justify-center rounded-lg border-2 backdrop-blur-sm cursor-pointer transition-all ${getColor(z.infestation)} ${
+                className={`relative flex flex-col items-center justify-center rounded-lg border-2 backdrop-blur-sm cursor-pointer transition-all overflow-hidden ${getColor(z.infestation)} ${
                   selectedZone?.zone === z.zone ? "ring-2 ring-primary ring-offset-1 scale-[1.03]" : "hover:scale-[1.02]"
                 }`}
               >
-                <span className="text-xs font-bold text-foreground drop-shadow-sm">Z{z.zone}</span>
-                <span className="text-lg font-extrabold text-foreground drop-shadow-sm">{z.infestation}%</span>
-                <span className="text-[10px] font-medium text-foreground/80 drop-shadow-sm">{z.weedCount} weeds</span>
+                {/* Mini heatmap background */}
+                <div className="absolute inset-0 grid grid-cols-3 grid-rows-3 opacity-40">
+                  {z.heatmapCells.map((cell, ci) => (
+                    <div key={ci} className={getHeatColor(cell)} />
+                  ))}
+                </div>
+                {/* Labels */}
+                <span className="relative text-xs font-bold text-foreground drop-shadow-sm">Z{z.zone}</span>
+                <span className="relative text-lg font-extrabold text-foreground drop-shadow-sm">{z.infestation}%</span>
+                <span className="relative text-[10px] font-medium text-foreground/80 drop-shadow-sm">{z.weedCount} weeds</span>
               </motion.button>
             ))}
           </div>
