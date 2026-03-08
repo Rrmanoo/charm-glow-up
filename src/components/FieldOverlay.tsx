@@ -1,8 +1,6 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Hash, Percent, Leaf, TrendingUp } from "lucide-react";
-import { MapContainer, TileLayer, useMap } from "react-leaflet";
-import "leaflet/dist/leaflet.css";
 
 interface ZoneSpecies {
   name: string;
@@ -54,13 +52,23 @@ const ZONE_LABELS = [
   "Bottom Left", "Bottom Center", "Bottom Right",
 ];
 
-// Astana Botanical Garden center
-const CENTER: [number, number] = [51.0906, 71.4185];
+// Satellite tile filenames matching the 3x3 grid (col-row)
+const TILE_GRID = [
+  ["/map-tiles/0-0.png", "/map-tiles/1-0.png", "/map-tiles/2-0.png"],
+  ["/map-tiles/0-1.png", "/map-tiles/1-1.png", "/map-tiles/2-1.png"],
+  ["/map-tiles/0-2.png", "/map-tiles/1-2.png", "/map-tiles/2-2.png"],
+];
 
 const getColor = (rate: number) => {
-  if (rate > 35) return "bg-destructive/60 border-destructive";
-  if (rate > 20) return "bg-warning/50 border-warning";
-  return "bg-success/40 border-success";
+  if (rate > 35) return "border-destructive";
+  if (rate > 20) return "border-warning";
+  return "border-success";
+};
+
+const getOverlayBg = (rate: number) => {
+  if (rate > 35) return "rgba(220, 38, 38, 0.45)";
+  if (rate > 20) return "rgba(234, 179, 8, 0.4)";
+  return "rgba(34, 197, 94, 0.35)";
 };
 
 const getSeverityColor = (rate: number) => {
@@ -74,21 +82,6 @@ const getHeatColor = (intensity: number) => {
   if (intensity > 25) return "bg-warning/60";
   if (intensity > 10) return "bg-accent/40";
   return "bg-success/30";
-};
-
-// Disable map interactions so it acts as a static background
-const DisableInteractions = () => {
-  const map = useMap();
-  useEffect(() => {
-    map.dragging.disable();
-    map.touchZoom.disable();
-    map.doubleClickZoom.disable();
-    map.scrollWheelZoom.disable();
-    map.boxZoom.disable();
-    map.keyboard.disable();
-    if ((map as any).tap) (map as any).tap.disable();
-  }, [map]);
-  return null;
 };
 
 const FieldOverlay = () => {
@@ -105,46 +98,44 @@ const FieldOverlay = () => {
       </p>
 
       <div className="grid gap-6 lg:grid-cols-[1fr_320px]">
-        {/* Map with satellite tiles + overlay */}
-        <div className="relative mx-auto w-full max-w-2xl overflow-hidden rounded-2xl border shadow-elevated" style={{ aspectRatio: "4/3" }}>
-          <MapContainer
-            center={CENTER}
-            zoom={15}
-            className="absolute inset-0 h-full w-full z-0"
-            zoomControl={false}
-            attributionControl={false}
-          >
-            <TileLayer
-              url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
-              maxZoom={19}
-            />
-            <DisableInteractions />
-          </MapContainer>
-
-          {/* Zone overlay grid on top of the map */}
-          <div className="absolute inset-0 z-10 grid grid-cols-3 grid-rows-3 gap-1 p-[4%]">
-            {mockZones.map((z, i) => (
-              <motion.button
-                key={i}
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 0.3 + i * 0.1 }}
-                onClick={() => setSelectedZone(selectedZone?.zone === z.zone ? null : z)}
-                className={`relative flex flex-col items-center justify-center rounded-lg border-2 backdrop-blur-[2px] cursor-pointer transition-all overflow-hidden ${getColor(z.infestation)} ${
-                  selectedZone?.zone === z.zone ? "ring-2 ring-primary ring-offset-1 scale-[1.03]" : "hover:scale-[1.02]"
-                }`}
-              >
-                {/* Mini heatmap background */}
-                <div className="absolute inset-0 grid grid-cols-3 grid-rows-3 opacity-50">
-                  {z.heatmapCells.map((cell, ci) => (
-                    <div key={ci} className={getHeatColor(cell)} />
-                  ))}
-                </div>
-                <span className="relative text-xs font-bold text-white drop-shadow-md">Z{z.zone}</span>
-                <span className="relative text-lg font-extrabold text-white drop-shadow-md">{z.infestation}%</span>
-                <span className="relative text-[10px] font-medium text-white/90 drop-shadow-md">{z.weedCount} weeds</span>
-              </motion.button>
+        {/* Satellite map with zone overlay */}
+        <div className="relative mx-auto w-full max-w-2xl overflow-hidden rounded-2xl border shadow-elevated">
+          {/* 3x3 satellite tile background */}
+          <div className="grid grid-cols-3 grid-rows-3">
+            {TILE_GRID.flat().map((tile, i) => (
+              <img key={i} src={tile} alt="" className="block w-full h-auto" draggable={false} />
             ))}
+          </div>
+
+          {/* Zone overlay grid */}
+          <div className="absolute inset-0 grid grid-cols-3 grid-rows-3">
+            {mockZones.map((z, i) => {
+              const row = Math.floor(i / 3);
+              const col = i % 3;
+              return (
+                <motion.button
+                  key={i}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 0.3 + i * 0.1 }}
+                  onClick={() => setSelectedZone(selectedZone?.zone === z.zone ? null : z)}
+                  className={`relative flex flex-col items-center justify-center border cursor-pointer transition-all overflow-hidden ${getColor(z.infestation)} ${
+                    selectedZone?.zone === z.zone ? "ring-2 ring-primary ring-inset z-10" : "hover:brightness-110"
+                  }`}
+                  style={{ backgroundColor: getOverlayBg(z.infestation) }}
+                >
+                  {/* Mini heatmap background */}
+                  <div className="absolute inset-0 grid grid-cols-3 grid-rows-3 opacity-30 pointer-events-none">
+                    {z.heatmapCells.map((cell, ci) => (
+                      <div key={ci} className={getHeatColor(cell)} />
+                    ))}
+                  </div>
+                  <span className="relative text-[10px] font-bold text-white drop-shadow-md">Z{z.zone}</span>
+                  <span className="relative text-base sm:text-lg font-extrabold text-white drop-shadow-md">{z.infestation}%</span>
+                  <span className="relative text-[9px] font-medium text-white/90 drop-shadow-md">{z.weedCount} weeds</span>
+                </motion.button>
+              );
+            })}
           </div>
         </div>
 
@@ -168,7 +159,6 @@ const FieldOverlay = () => {
                 </button>
               </div>
 
-              {/* Stats */}
               <div className="grid grid-cols-2 gap-2 mb-4">
                 <div className="flex items-center gap-2 rounded-lg bg-muted/50 px-3 py-2">
                   <Hash className="h-3.5 w-3.5 text-muted-foreground" />
@@ -186,7 +176,6 @@ const FieldOverlay = () => {
                 </div>
               </div>
 
-              {/* Mini heatmap */}
               <div className="mb-4">
                 <p className="text-[11px] font-medium text-muted-foreground mb-1.5 flex items-center gap-1">
                   <TrendingUp className="h-3 w-3" /> Density Distribution
@@ -200,7 +189,6 @@ const FieldOverlay = () => {
                 </div>
               </div>
 
-              {/* Species */}
               <div>
                 <p className="text-[11px] font-medium text-muted-foreground mb-2 flex items-center gap-1">
                   <Leaf className="h-3 w-3" /> Species Breakdown
