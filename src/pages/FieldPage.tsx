@@ -8,6 +8,7 @@ import FieldGrid from "@/components/FieldGrid";
 import FieldOverlay from "@/components/FieldOverlay";
 import FieldImageReconstruction from "@/components/FieldImageReconstruction";
 import AnalyticsPanel from "@/components/AnalyticsPanel";
+import TreatmentRecommendations from "@/components/TreatmentRecommendations";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import StatCard from "@/components/StatCard";
 import { Hash, Percent, Bug, Leaf } from "lucide-react";
@@ -157,6 +158,17 @@ const FieldPage = () => {
 
             {/* Analytics */}
             <AnalyticsPanel />
+
+            {/* Treatment Recommendations */}
+            <TreatmentRecommendations
+              species={[
+                { name: "Amaranthus retroflexus", count: 203, percentage: 35 },
+                { name: "Cyperus rotundus", count: 145, percentage: 25 },
+                { name: "Echinochloa crus-galli", count: 116, percentage: 20 },
+                { name: "Digitaria sanguinalis", count: 70, percentage: 12 },
+                { name: "Setaria viridis", count: 47, percentage: 8 },
+              ]}
+            />
           </motion.div>
         )}
       </div>
