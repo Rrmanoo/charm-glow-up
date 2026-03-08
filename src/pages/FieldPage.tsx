@@ -5,7 +5,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import FieldGrid from "@/components/FieldGrid";
 import FieldOverlay from "@/components/FieldOverlay";
+import FieldImageReconstruction from "@/components/FieldImageReconstruction";
 import AnalyticsPanel from "@/components/AnalyticsPanel";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import StatCard from "@/components/StatCard";
 import { Hash, Percent, Bug, Leaf } from "lucide-react";
 
