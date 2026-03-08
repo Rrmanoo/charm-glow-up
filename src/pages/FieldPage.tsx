@@ -13,10 +13,20 @@ const FieldPage = () => {
   const [location, setLocation] = useState("");
   const [showResults, setShowResults] = useState(false);
   const [processing, setProcessing] = useState(false);
+  const [isExample, setIsExample] = useState(false);
 
   const handleProcess = async () => {
     setProcessing(true);
     await new Promise((r) => setTimeout(r, 2500));
+    setShowResults(true);
+    setProcessing(false);
+  };
+
+  const showExample = async () => {
+    setLocation("37.7749° N, 122.4194° W — Sacramento Valley");
+    setProcessing(true);
+    setIsExample(true);
+    await new Promise((r) => setTimeout(r, 1500));
     setShowResults(true);
     setProcessing(false);
   };
