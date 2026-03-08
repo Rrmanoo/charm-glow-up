@@ -1,7 +1,8 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Hash, Percent, Leaf, TrendingUp } from "lucide-react";
-import satelliteImg from "@/assets/satellite-field.jpg";
+import { MapContainer, TileLayer, useMap } from "react-leaflet";
+import "leaflet/dist/leaflet.css";
 
 interface ZoneSpecies {
   name: string;
@@ -53,6 +54,9 @@ const ZONE_LABELS = [
   "Bottom Left", "Bottom Center", "Bottom Right",
 ];
 
+// Astana Botanical Garden center
+const CENTER: [number, number] = [51.0906, 71.4185];
+
 const getColor = (rate: number) => {
   if (rate > 35) return "bg-destructive/60 border-destructive";
   if (rate > 20) return "bg-warning/50 border-warning";
@@ -72,6 +76,21 @@ const getHeatColor = (intensity: number) => {
   return "bg-success/30";
 };
 
+// Disable map interactions so it acts as a static background
+const DisableInteractions = () => {
+  const map = useMap();
+  useEffect(() => {
+    map.dragging.disable();
+    map.touchZoom.disable();
+    map.doubleClickZoom.disable();
+    map.scrollWheelZoom.disable();
+    map.boxZoom.disable();
+    map.keyboard.disable();
+    if ((map as any).tap) (map as any).tap.disable();
+  }, [map]);
+  return null;
+};
+
 const FieldOverlay = () => {
   const mostInfested = mockZones.reduce((max, z) => z.infestation > max.infestation ? z : max, mockZones[0]);
   const [selectedZone, setSelectedZone] = useState<ZoneData | null>(mostInfested);
@@ -81,17 +100,29 @@ const FieldOverlay = () => {
       <h3 className="text-lg font-semibold text-foreground">
         Field Reconstruction — Weed Distribution Map
       </h3>
-      <p className="text-xs text-muted-foreground -mt-2">Click any zone to view detailed analysis</p>
+      <p className="text-xs text-muted-foreground -mt-2">
+        Botanical Garden, Astana · 51.0906°N, 71.4185°E · Click any zone to drill down
+      </p>
 
       <div className="grid gap-6 lg:grid-cols-[1fr_320px]">
-        {/* Map */}
-        <div className="relative mx-auto w-full max-w-2xl overflow-hidden rounded-2xl border shadow-elevated">
-          <img
-            src={satelliteImg}
-            alt="Satellite view of field"
-            className="block w-full object-cover"
-          />
-          <div className="absolute inset-0 grid grid-cols-3 grid-rows-3 gap-0.5 p-[5%]">
+        {/* Map with satellite tiles + overlay */}
+        <div className="relative mx-auto w-full max-w-2xl overflow-hidden rounded-2xl border shadow-elevated" style={{ aspectRatio: "4/3" }}>
+          <MapContainer
+            center={CENTER}
+            zoom={15}
+            className="absolute inset-0 h-full w-full z-0"
+            zoomControl={false}
+            attributionControl={false}
+          >
+            <TileLayer
+              url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
+              maxZoom={19}
+            />
+            <DisableInteractions />
+          </MapContainer>
+
+          {/* Zone overlay grid on top of the map */}
+          <div className="absolute inset-0 z-10 grid grid-cols-3 grid-rows-3 gap-1 p-[4%]">
             {mockZones.map((z, i) => (
               <motion.button
                 key={i}
@@ -99,20 +130,19 @@ const FieldOverlay = () => {
                 animate={{ opacity: 1 }}
                 transition={{ delay: 0.3 + i * 0.1 }}
                 onClick={() => setSelectedZone(selectedZone?.zone === z.zone ? null : z)}
-                className={`relative flex flex-col items-center justify-center rounded-lg border-2 backdrop-blur-sm cursor-pointer transition-all overflow-hidden ${getColor(z.infestation)} ${
+                className={`relative flex flex-col items-center justify-center rounded-lg border-2 backdrop-blur-[2px] cursor-pointer transition-all overflow-hidden ${getColor(z.infestation)} ${
                   selectedZone?.zone === z.zone ? "ring-2 ring-primary ring-offset-1 scale-[1.03]" : "hover:scale-[1.02]"
                 }`}
               >
                 {/* Mini heatmap background */}
-                <div className="absolute inset-0 grid grid-cols-3 grid-rows-3 opacity-40">
+                <div className="absolute inset-0 grid grid-cols-3 grid-rows-3 opacity-50">
                   {z.heatmapCells.map((cell, ci) => (
                     <div key={ci} className={getHeatColor(cell)} />
                   ))}
                 </div>
-                {/* Labels */}
-                <span className="relative text-xs font-bold text-foreground drop-shadow-sm">Z{z.zone}</span>
-                <span className="relative text-lg font-extrabold text-foreground drop-shadow-sm">{z.infestation}%</span>
-                <span className="relative text-[10px] font-medium text-foreground/80 drop-shadow-sm">{z.weedCount} weeds</span>
+                <span className="relative text-xs font-bold text-white drop-shadow-md">Z{z.zone}</span>
+                <span className="relative text-lg font-extrabold text-white drop-shadow-md">{z.infestation}%</span>
+                <span className="relative text-[10px] font-medium text-white/90 drop-shadow-md">{z.weedCount} weeds</span>
               </motion.button>
             ))}
           </div>
