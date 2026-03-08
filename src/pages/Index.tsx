@@ -70,7 +70,7 @@ const Index = () => {
                   Analyze Image
                 </Link>
               </Button>
-              <Button asChild variant="outline" size="lg" className="border-primary-foreground/30 text-primary-foreground hover:bg-primary-foreground/10 hover:text-primary-foreground">
+              <Button asChild variant="outline" size="lg" className="border-primary-foreground/30 bg-primary-foreground/10 text-primary-foreground hover:bg-primary-foreground/20 hover:text-primary-foreground backdrop-blur-sm">
                 <Link to="/field">
                   <Grid3X3 className="mr-2 h-4 w-4" />
                   Field Analysis
