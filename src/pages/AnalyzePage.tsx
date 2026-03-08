@@ -76,6 +76,17 @@ const AnalyzePage = () => {
           <p className="mt-2 text-muted-foreground">
             Upload a field image to identify and count weeds with infestation rate
           </p>
+          {!image && !result && (
+            <Button
+              variant="outline"
+              size="sm"
+              className="mt-3"
+              onClick={showExample}
+            >
+              <Leaf className="mr-2 h-4 w-4" />
+              See Example Output
+            </Button>
+          )}
         </motion.div>
 
         <div className="mt-8 grid gap-8 lg:grid-cols-2">
