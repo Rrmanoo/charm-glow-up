@@ -27,7 +27,13 @@ serve(async (req) => {
 
 You MUST respond by calling the "classify_weeds" function with your analysis results. Be as accurate as possible based on visual features like leaf shape, growth pattern, stem structure, and flower characteristics.
 
-If the image does not contain plants or weeds, still call the function but with weedCount: 0, infestationRate: 0, and an empty species array.
+For each weed detected, provide a bounding box as normalized coordinates (0-1 range relative to image dimensions):
+- x: left edge of the bounding box (0 = left, 1 = right)
+- y: top edge of the bounding box (0 = top, 1 = bottom)
+- width: width of the box as fraction of image width
+- height: height of the box as fraction of image height
+
+If the image does not contain plants or weeds, still call the function but with weedCount: 0, infestationRate: 0, empty species array, and empty boundingBoxes array.
 
 Common agricultural weeds to look for include:
 - Amaranthus retroflexus (Redroot Pigweed)
@@ -58,7 +64,7 @@ Common agricultural weeds to look for include:
               content: [
                 {
                   type: "text",
-                  text: "Analyze this image. Identify all weed species visible, estimate the weed count, and calculate the infestation rate (percentage of the visible area covered by weeds). Provide species breakdown with counts and percentages.",
+                  text: "Analyze this image. Identify all weed species visible, estimate the weed count, calculate the infestation rate, and provide bounding boxes around each detected weed. Each bounding box should use normalized coordinates (0-1) relative to image dimensions.",
                 },
                 {
                   type: "image_url",
@@ -75,7 +81,7 @@ Common agricultural weeds to look for include:
               function: {
                 name: "classify_weeds",
                 description:
-                  "Return structured weed classification results from the image analysis.",
+                  "Return structured weed classification results with bounding boxes from the image analysis.",
                 parameters: {
                   type: "object",
                   properties: {
@@ -111,13 +117,48 @@ Common agricultural weeds to look for include:
                         additionalProperties: false,
                       },
                     },
+                    boundingBoxes: {
+                      type: "array",
+                      description: "Bounding boxes for each detected weed",
+                      items: {
+                        type: "object",
+                        properties: {
+                          x: {
+                            type: "number",
+                            description: "Left edge normalized (0-1)",
+                          },
+                          y: {
+                            type: "number",
+                            description: "Top edge normalized (0-1)",
+                          },
+                          width: {
+                            type: "number",
+                            description: "Width normalized (0-1)",
+                          },
+                          height: {
+                            type: "number",
+                            description: "Height normalized (0-1)",
+                          },
+                          label: {
+                            type: "string",
+                            description: "Species name for this detection",
+                          },
+                          confidence: {
+                            type: "number",
+                            description: "Confidence score 0-1",
+                          },
+                        },
+                        required: ["x", "y", "width", "height", "label", "confidence"],
+                        additionalProperties: false,
+                      },
+                    },
                     summary: {
                       type: "string",
                       description:
                         "Brief text summary of the analysis findings",
                     },
                   },
-                  required: ["weedCount", "infestationRate", "species", "summary"],
+                  required: ["weedCount", "infestationRate", "species", "boundingBoxes", "summary"],
                   additionalProperties: false,
                 },
               },
