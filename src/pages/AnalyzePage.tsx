@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Upload, Loader2, Bug, Percent, Hash, Leaf, AlertCircle, Eye, EyeOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import StatCard from "@/components/StatCard";
+import TreatmentRecommendations from "@/components/TreatmentRecommendations";
 import weedSampleImg from "@/assets/weed-sample.jpg";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
