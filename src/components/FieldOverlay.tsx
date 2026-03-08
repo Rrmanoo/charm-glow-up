@@ -73,7 +73,8 @@ const getHeatColor = (intensity: number) => {
 };
 
 const FieldOverlay = () => {
-  const [selectedZone, setSelectedZone] = useState<ZoneData | null>(null);
+  const mostInfested = mockZones.reduce((max, z) => z.infestation > max.infestation ? z : max, mockZones[0]);
+  const [selectedZone, setSelectedZone] = useState<ZoneData | null>(mostInfested);
 
   return (
     <div className="space-y-4">
