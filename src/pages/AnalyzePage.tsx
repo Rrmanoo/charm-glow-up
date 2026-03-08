@@ -15,16 +15,12 @@ interface AnalysisResult {
 }
 
 const mockResult: AnalysisResult = {
-  weedCount: 47,
-  infestationRate: 23.5,
+  weedCount: 2,
+  infestationRate: 8.5,
   species: [
-    { name: "Amaranthus retroflexus", count: 18, percentage: 38 },
-    { name: "Cyperus rotundus", count: 12, percentage: 26 },
-    { name: "Echinochloa crus-galli", count: 9, percentage: 19 },
-    { name: "Digitaria sanguinalis", count: 5, percentage: 11 },
-    { name: "Other species", count: 3, percentage: 6 },
+    { name: "Portulaca oleracea", count: 2, percentage: 100 },
   ],
-  summary: "Example output — upload your own image for real AI analysis.",
+  summary: "Two specimens of Common Purslane (Portulaca oleracea) detected on bare soil. The plant displays characteristic succulent, spatula-shaped leaves arranged in a rosette pattern. Low infestation rate with localized growth.",
 };
 
 const fileToBase64 = (file: File): Promise<string> =>
