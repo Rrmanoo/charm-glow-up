@@ -41,6 +41,27 @@ const FieldPage = () => {
           <p className="mt-2 text-muted-foreground">
             Upload images from all 9 zones of your 100-hectare field for complete weed mapping
           </p>
+          {!showResults && !isExample && (
+            <Button
+              variant="outline"
+              size="sm"
+              className="mt-3"
+              onClick={showExample}
+              disabled={processing}
+            >
+              {processing ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Loading Example...
+                </>
+              ) : (
+                <>
+                  <Leaf className="mr-2 h-4 w-4" />
+                  See Example Output
+                </>
+              )}
+            </Button>
+          )}
         </motion.div>
 
         {/* Location input */}

@@ -148,6 +148,7 @@ const AnalyzePage = () => {
                     onClick={() => {
                       setImage(null);
                       setResult(null);
+                      setIsExample(false);
                     }}
                   >
                     Clear
