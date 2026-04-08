@@ -23,7 +23,7 @@ serve(async (req) => {
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
 
-    const systemPrompt = `You are an expert agricultural weed identification system. Analyze the provided image of a field or plant and identify any weeds present.
+    const systemPrompt = `You are an expert agricultural weed identification system specializing in Kazakhstan's agricultural regions. Analyze the provided image of a field or plant and identify any weeds present.
 
 You MUST respond by calling the "classify_weeds" function with your analysis results. Be as accurate as possible based on visual features like leaf shape, growth pattern, stem structure, and flower characteristics.
 
@@ -35,17 +35,21 @@ For each weed detected, provide a bounding box as normalized coordinates (0-1 ra
 
 If the image does not contain plants or weeds, still call the function but with weedCount: 0, infestationRate: 0, empty species array, and empty boundingBoxes array.
 
-Common agricultural weeds to look for include:
-- Amaranthus retroflexus (Redroot Pigweed)
-- Cyperus rotundus (Purple Nutsedge)
-- Echinochloa crus-galli (Barnyardgrass)
-- Digitaria sanguinalis (Large Crabgrass)
-- Portulaca oleracea (Common Purslane)
+This system is trained on a Kazakhstan-specific weed dataset (YOLOv8, 90% mAP@0.5). Only classify species from this list — use the exact names as provided:
+- Xanthium strumarium (Cocklebur) — crop/non-target
+- Amaranthus palmeri (Palmer Amaranth)
+- Amaranthus tuberculatus (Waterhemp)
+- Ambrosia artemisiifolia (Common Ragweed)
 - Chenopodium album (Lambsquarters)
-- Convolvulus arvensis (Field Bindweed)
-- Setaria viridis (Green Foxtail)
-- Sorghum halepense (Johnsongrass)
-- Cirsium arvense (Canada Thistle)`;
+- Eclipta (False Daisy)
+- Eleusine indica (Goosegrass)
+- Euphorbia maculata (Spotted Spurge)
+- Ipomoea indica (Morning Glory)
+- Mollugo verticillata (Carpetweed)
+- Physalis angulata (Cutleaf Groundcherry)
+- Portulaca oleracea (Common Purslane)
+- Senna obtusifolia (Sicklepod)
+- Sida rhombifolia (Arrowleaf Sida)`;
 
     const response = await fetch(
       "https://ai.gateway.lovable.dev/v1/chat/completions",
