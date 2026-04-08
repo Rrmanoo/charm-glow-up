@@ -16,7 +16,7 @@ const App = () => (
     <TooltipProvider>
       <Toaster />
       <Sonner />
-      <BrowserRouter>
+      <BrowserRouter basename="/charm-glow-up">
         <Navbar />
         <Routes>
           <Route path="/" element={<Index />} />
